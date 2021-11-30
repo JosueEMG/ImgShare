@@ -52,18 +52,23 @@ async function likesTotalCounter() {
 
 module.exports = async () => {
 
-    const results = await Promise.all([
-        imageCounter(),
-        commentsCounter(),
-        imageTotalViewsCounter(),
-        likesTotalCounter()
-    ])
-
-    return {
-        image: results[0],
-        comments: results[1],
-        views: results[2],
-        likes: results[3]
-    } 
+    try {
+        const results = await Promise.all([
+            imageCounter(),
+            commentsCounter(),
+            imageTotalViewsCounter(),
+            likesTotalCounter()
+        ])
+    
+        return {
+            image: results[0],
+            comments: results[1],
+            views: results[2],
+            likes: results[3]
+        } 
+    } catch (error) {
+        console.log(error)
+    }
+    
 
 }

@@ -33,7 +33,9 @@ ctrl.index = async (req, res) => {
 ctrl.create = async (req, res) => {
 
     const saveImage = async () => {
-        const imgUrl = randomNumber()
+
+        try {
+            const imgUrl = randomNumber()
         const images = await Image.find({filename: imgUrl})
         if (images.length > 0) {
             saveImage()
@@ -45,22 +47,29 @@ ctrl.create = async (req, res) => {
 
             if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif') {
                 await fs.rename(imageTempPath, targetPath)
-                const result = await cloudinary.v2.uploader.upload(imageTempPath, {
+                const result = await cloudinary.v2.uploader.upload(targetPath, {
                     folder: 'ImgShare'
                 })
+
+                console.log(result)
                 const newImg = new Image({
                     title: req.body.title,
-                    filename: result.secure_url,
+                    filename: result.original_filename,
                     description: req.body.description,
-                    public_id: result.public_id
+                    image_url: result.secure_url
                 })
                 await newImg.save()
+                await fs.unlink(targetPath)
                 res.redirect('/images/' + imgUrl)
             } else {
                 await fs.unlink(imageTempPath)
                 res.status(500).json({error: 'Only images are allowed'})
             }
         }
+        } catch (error) {
+            console.log(error)
+        }
+        
     }
     saveImage()
     
