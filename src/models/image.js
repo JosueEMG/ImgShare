@@ -9,6 +9,7 @@ const ImageSchema = new Schema ({
     filename: { type: String },
     views: { type: Number, default: 0},
     likes: { type: Number, default: 0},
+    public_id: {type: String},
     timestamp: {type: Date, default: Date.now}
 })
 

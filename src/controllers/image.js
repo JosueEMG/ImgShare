@@ -2,8 +2,14 @@ const path = require('path')
 const md5 = require('md5')
 const { randomNumber } = require('../helpers/libs')
 const fs = require('fs-extra')
+const cloudinary = require('cloudinary');
 const ctrl = {}
 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+})
 
 const { Image, Comment } = require('../models')
 const sidebar = require('../helpers/sidebar')
@@ -39,12 +45,16 @@ ctrl.create = async (req, res) => {
 
             if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif') {
                 await fs.rename(imageTempPath, targetPath)
+                const result = await cloudinary.v2.uploader.upload(imageTempPath, {
+                    folder: 'ImgShare'
+                })
                 const newImg = new Image({
                     title: req.body.title,
-                    filename: imgUrl + ext,
-                    description: req.body.description
+                    filename: result.secure_url,
+                    description: req.body.description,
+                    public_id: result.public_id
                 })
-                const imageSave = await newImg.save()
+                await newImg.save()
                 res.redirect('/images/' + imgUrl)
             } else {
                 await fs.unlink(imageTempPath)
@@ -87,6 +97,7 @@ ctrl.remove = async (req, res) => {
     const image =await  Image.findOne({filename: {$regex: req.params.image_id}})
     if (image) {
         await fs.unlink(path.resolve(`./src/public/upload/${image.filename}`))
+        const result = await cloudinary.v2.uploader.destroy(image.public_id)
         await Comment.deleteOne({image_id: image._id})
         await image.remove()
         res.json(true)
