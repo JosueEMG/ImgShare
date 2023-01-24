@@ -97,9 +97,6 @@ ctrl.comment = async (req, res) => {
     } else {
         res.redirect('/')
     }
-    
-    
-    res.send('Comment')
 }
 
 ctrl.remove = async (req, res) => {
